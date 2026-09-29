@@ -68,6 +68,15 @@
       if(rows.length<2)return '見出しとデータ行があるCSVを選んでください。';
       const headers=rows[0].map(x=>x.trim());
       const data=rows.slice(1);
+      const duplicateHeaders=[...new Set(headers.filter((name,i)=>name&&headers.indexOf(name)!==i))];
+      const firstBadWidth=data.findIndex(row=>row.length!==headers.length);
+      if(headers.some(name=>name==='')||duplicateHeaders.length||firstBadWidth!==-1){
+        const problems=[];
+        if(headers.some(name=>name===''))problems.push('見出しに空欄があります。');
+        if(duplicateHeaders.length)problems.push(`同じ列名が複数あります：${duplicateHeaders.join('、')}。`);
+        if(firstBadWidth!==-1)problems.push(`${firstBadWidth+2}行目は見出し${headers.length}列に対して${data[firstBadWidth].length}列です。`);
+        return `CSVの列構造を確認してください。\n${problems.join('\n')}\n誤った列の集計を避けるため、このファイルの数値判定は行いません。CSV原本と文字コードを確認してください。`;
+      }
       const index=Object.fromEntries(headers.map((name,i)=>[name,i]));
       const has=name=>Object.hasOwn(index,name);
       const get=(row,name)=>has(name)?String(row[index[name]]??'').trim():'';
