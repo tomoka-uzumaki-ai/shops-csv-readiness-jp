@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="メルカリShopsの複数個購入に伴う一括発送通知・売上明細CSVを、ブラウザー内だけで点検。行数と注文件数、数量、販売利益列の違いを確認します。">
+  <meta name="google-site-verification" content="xKikV9wQF_xmwd3n7Kx4e-9A_dVvAwl5gHHgCx1C2TU">
+  <link rel="canonical" href="https://tomoka-uzumaki-ai.github.io/shops-csv-readiness-jp/">
+  <title>メルカリShops CSV移行の手元確認｜複数個購入</title>
+  <style>
+    :root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;color:#173244;background:#f3f7f6;line-height:1.65}
+    *{box-sizing:border-box}body{margin:0}a{color:#08716b;text-underline-offset:3px}button,input,select{font:inherit}button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #eaa258;outline-offset:3px}
+    .wrap{width:min(100% - 32px,900px);margin:auto}.top{background:#143646;color:#fff;padding:38px 0 44px}.top small{display:inline-block;border:1px solid #9fd2ce;border-radius:40px;padding:4px 10px;color:#dcf3ed;font-weight:700}.top h1{font-size:clamp(29px,5.5vw,48px);line-height:1.2;letter-spacing:-.03em;margin:18px 0 14px}.top p{max-width:690px;margin:0;color:#e3f1ee}.main{margin-top:-23px;position:relative;padding-bottom:60px}.panel{background:#fff;border:1px solid #d4e2de;border-radius:16px;padding:clamp(20px,4vw,34px);margin-bottom:18px;box-shadow:0 10px 25px rgba(16,49,57,.05)}h2{font-size:clamp(21px,3vw,27px);margin:0 0 12px}h3{font-size:17px;margin:18px 0 6px}.muted{color:#526d73;font-size:14px}.callout{background:#fff5e6;border-left:4px solid #d6943d;padding:14px 17px;border-radius:0 9px 9px 0;margin:15px 0}.fields{display:grid;grid-template-columns:2fr 1fr;gap:13px;margin:20px 0}.field{display:block;font-weight:700}.field input,.field select{display:block;width:100%;padding:11px;margin-top:6px;border:1px solid #a8c7c4;border-radius:9px;background:#fff;color:#173244}.field small{display:block;font-weight:400;color:#526d73;margin-top:6px}.result{background:#eff8f5;border:1px solid #b9dacf;border-radius:12px;padding:17px;margin-top:16px;min-height:90px}.result pre{white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.65 -apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;margin:0}.legend{display:grid;grid-template-columns:1fr 1fr;gap:12px}.legend div{border:1px solid #d7e4e1;border-radius:11px;padding:15px;background:#fcfefd}.legend b{display:block;margin-bottom:5px}.check{padding-left:21px}.check li{margin:8px 0}.sources{font-size:13px;color:#526d73}.footer{border-top:1px solid #d4e2de;padding:20px 0 35px;font-size:12px;color:#526d73}@media(max-width:620px){.fields,.legend{grid-template-columns:1fr}.top{padding:32px 0 40px}}
+  </style>
+</head>
+<body>
+  <header class="top"><div class="wrap"><small>独立した移行確認ツール・試作版</small><h1>新CSVで、従来の集計が<br>壊れないか確かめる。</h1><p>メルカリShopsの複数個購入に伴い、一括発送通知と売上明細の行の意味が変わります。実際に出力したCSVをこの端末内だけで読み、移行前に確かめる点を表示します。</p></div></header>
+  <main class="wrap main">
+    <section class="panel" aria-labelledby="audit-title">
+      <h2 id="audit-title">CSVを選ぶ</h2>
+      <p>新形式の一括発送通知CSV、または売上明細CSVを1つ選択してください。旧形式を選ぶと、その旨を表示します。注文番号や商品名を結果には表示しません。</p>
+      <div class="callout"><strong>安全な範囲：</strong>CSVはブラウザー内だけで処理し、当方のサーバーへアップロードしません。この試作にアクセス解析や外部スクリプトはありません。とはいえ、実際の顧客情報を含むファイルは、利用権限と社内ルールを確認してから扱ってください。</div>
+      <div class="fields">
+        <label class="field">CSVファイル<input id="file" type="file" accept=".csv,text/csv"><small>上限5MB。原本は書き換えません。</small></label>
+        <label class="field">文字コード<select id="encoding"><option value="utf-8">UTF-8</option><option value="shift_jis">Shift-JIS</option></select><small>文字化けしたら切り替えて、同じファイルを選び直してください。</small></label>
+      </div>
+      <p class="muted">先に試す場合：<a href="./sample_shipping_fictional.csv" download>架空の発送CSV</a>／<a href="./sample_sales_fictional.csv" download>架空の売上明細CSV</a>。公式の全列を再現したファイルではありません。</p>
+      <div class="result" role="status" aria-live="polite"><pre id="report">CSVを選ぶと、形式と確認事項がここに出ます。</pre></div>
+    </section>
+    <section class="panel" aria-labelledby="meaning-title">
+      <h2 id="meaning-title">結果をどう使うか</h2>
+      <div class="legend">
+        <div><b>一括発送通知CSV</b><span>新形式は「注文行＋商品行」。行数を注文件数とみなさず、<code>type=product</code>の数量を確認します。<code>shipping_id</code>入り行は数量を変更できないため、元のCSVと自社手順で照合してください。</span></div>
+        <div><b>売上明細CSV</b><span>商品・送料・インボイス・キャンセルなどが別行です。金額を自作計算で推定せず、公式の<code>販売利益</code>列を合計します。負の数量を消したり、最初の1行だけ取り込んだりしないでください。</span></div>
+      </div>
+      <h3>設定をONにする前の受入検査</h3>
+      <ol class="check">
+        <li>自社のCSV取込、マクロ、RPA、会計ソフトに、架空の複数個・分割発送・キャンセル例を通す。</li>
+        <li>注文数、発送対象個数、売上明細の<strong>販売利益</strong>合計を、メルカリShops管理画面の元データと照合する。</li>
+        <li>API・EC一元管理システムを利用中なら、提供元の対応確認を受けるまでONにしない。<strong>一度ONにするとショップ側でOFFに戻せません。</strong></li>
+      </ol>
+      <p class="muted">この道具は自社システムとの接続や適合性、注文処理の成功を保証しません。CSVの列は今後変わり得ます。画面での運用・アップロード前に公式の最新案内を確認してください。</p>
+    </section>
+    <section class="panel sources"><h2>根拠</h2><p><a href="https://jp-news.mercari.com/mercari-shops/info/53548" target="_blank" rel="noopener">メルカリShops公式：同一商品の複数個購入（9月24日追記）</a>。2026年9月29日に確認。記事は9月28日リリースを「予定」と記載しており、この試作は実際の提供開始を保証しません。部分キャンセルの条件も同記事の追記に従って再確認してください。</p></section>
+  </main>
+  <footer class="footer"><div class="wrap">独立した移行確認の試作です。メルカリShops公式サービスではありません。CSVの内容は保存・送信しません。</div></footer>
+  <script>
+  (()=>{
+    const report=document.getElementById('report');
+    const fileInput=document.getElementById('file');
+    const encoding=document.getElementById('encoding');
+    function parseCsv(text){
+      const rows=[];let row=[],cell='',quoted=false;
+      text=text.replace(/^\uFEFF/,'');
+      for(let i=0;i<text.length;i++){
+        const c=text[i];
+        if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else quoted=false;}else cell+=c;continue;}
+        if(c==='"' && cell===''){quoted=true;continue;}
+        if(c===','){row.push(cell);cell='';continue;}
+        if(c==='\r'||c==='\n'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(value=>value!==''))rows.push(row);row=[];cell='';continue;}
+        cell+=c;
+      }
+      if(quoted)throw new Error('引用符が閉じていません。CSV原本の形式を確認してください。');
+      row.push(cell);if(row.some(value=>value!==''))rows.push(row);
+      return rows;
+    }
+    function analyze(rows){
+      if(rows.length<2)return '見出しとデータ行があるCSVを選んでください。';
+      const headers=rows[0].map(x=>x.trim());
+      const data=rows.slice(1);
+      const index=Object.fromEntries(headers.map((name,i)=>[name,i]));
+      const has=name=>Object.hasOwn(index,name);
+      const get=(row,name)=>has(name)?String(row[index[name]]??'').trim():'';
+      const lines=[];
+      if(headers.some(x=>x.includes('\uFFFD')))lines.push('文字化けの可能性があります。文字コードを切り替えて再選択してください。');
+      if(has('type')&&has('order_id')){
+        const required=['type','order_id','variant_id','quantity'];
+        const missing=required.filter(x=>!has(x));
+        const product=data.filter(row=>get(row,'type')==='product');
+        const order=data.filter(row=>get(row,'type')==='order');
+        const orders=new Set(data.map(row=>get(row,'order_id')).filter(Boolean));
+        const badQty=product.filter(row=>!/^\d+$/.test(get(row,'quantity'))||Number(get(row,'quantity'))<1).length;
+        const missingVariant=product.filter(row=>!get(row,'variant_id')).length;
+        const multiQty=product.filter(row=>Number(get(row,'quantity'))>1).length;
+        const shippingId=has('shipping_id')?product.filter(row=>get(row,'shipping_id')).length:null;
+        const unknownType=data.filter(row=>!['order','product'].includes(get(row,'type'))).length;
+        lines.push('形式：新しい一括発送通知CSVの候補');
+        lines.push(`データ行 ${data.length}／注文行 ${order.length}／商品行 ${product.length}／異なる注文番号 ${orders.size}`);
+        lines.push(`数量が2以上の商品行 ${multiQty}／数量が空欄・整数1以上でない商品行 ${badQty}`);
+        if(shippingId!==null)lines.push(`shipping_id入りの商品行 ${shippingId}：元の数量・商品を変更していないか、原本と照合してください。`);
+        if(missing.length)lines.push(`要確認：公式が必須とする列が見当たりません：${missing.join('、')}`);
+        if(missingVariant)lines.push(`要確認：variant_id空欄の商品行が${missingVariant}行あります。`);
+        if(unknownType)lines.push(`要確認：order/product以外のtypeが${unknownType}行あります。仕様を確認してください。`);
+        if(orders.size>1000)lines.push('要確認：異なる注文番号が1,000件を超えます。一括アップロード上限は1,000注文です。');
+        if(data.length>orders.size)lines.push('重要：行数は注文件数ではありません。既存の取込が「1行＝1注文」なら修正が必要です。');
+        lines.push('この判定は列と件数の点検です。実際の発送可否・連携先の対応は判定できません。');
+      }else if(['明細種別','注文番号','明細番号'].some(has)){
+        const required=['明細種別','注文番号','明細番号','販売利益'];
+        const missing=required.filter(x=>!has(x));
+        const orders=new Set(data.map(row=>get(row,'注文番号')).filter(Boolean));
+        const details=new Set(data.map(row=>get(row,'明細番号')).filter(Boolean));
+        const invoice=data.filter(row=>get(row,'明細種別').includes('インボイス')).length;
+        const cancel=data.filter(row=>get(row,'明細種別').includes('キャンセル')).length;
+        const negativeQuantity=has('数量')?data.filter(row=>/^\s*-/.test(get(row,'数量'))).length:null;
+        lines.push('形式：新しい売上明細CSVの候補');
+        lines.push(`データ行 ${data.length}／異なる注文番号 ${orders.size}／異なる明細番号 ${details.size}`);
+        lines.push(`インボイス行 ${invoice}／キャンセル関連行 ${cancel}${negativeQuantity===null?'':`／数量が負の行 ${negativeQuantity}`}`);
+        if(missing.length)lines.push(`要確認：集計に必要な列が見当たりません：${missing.join('、')}`);
+        if(has('販売利益')){
+          const raw=data.map(row=>get(row,'販売利益').replace(/[¥￥円,\s]/g,''));
+          const invalid=raw.filter(value=>value===''||!/^[-+]?\d+(?:\.\d+)?$/.test(value)).length;
+          if(invalid)lines.push(`販売利益を合計しません：読めない金額が${invalid}行あります。空欄を0円とみなしません。`);
+          else lines.push(`販売利益列の合計 ${raw.reduce((sum,value)=>sum+Number(value),0).toLocaleString('ja-JP')}円（CSV内の列値の単純合計。受領済み利益や当方の収益ではありません）`);
+        }
+        if(data.length>orders.size)lines.push('重要：行数は注文件数ではありません。最初の1行だけ取り込む処理は明細を落とします。');
+        lines.push('元の管理画面と、注文番号・明細番号ごとの集計を照合してください。');
+      }else if(has('order_id')){
+        lines.push('形式：type列がない旧形式の一括発送通知CSVの候補');
+        lines.push(`データ行 ${data.length}。設定をONにした後は新形式が必要です。旧CSVのままでONにしないでください。`);
+      }else{
+        lines.push('形式を特定できません。メルカリShopsから出力した対象CSVか、見出し・文字コードを確認してください。');
+        lines.push('このファイルを自動変換・アップロードしないでください。');
+      }
+      return lines.join('\n');
+    }
+    fileInput.addEventListener('change',async()=>{
+      const file=fileInput.files[0];if(!file)return;
+      if(file.size>5*1024*1024){report.textContent='5MBを超えるファイルは扱いません。対象期間を分けて出力してください。';return;}
+      report.textContent='この端末内で読み取り中…';
+      try{
+        const raw=await file.arrayBuffer();
+        const decoded=new TextDecoder(encoding.value,{fatal:true}).decode(raw);
+        report.textContent=analyze(parseCsv(decoded));
+      }catch(error){report.textContent=`読み取れませんでした：${error.message} 文字コードかCSV形式を確認してください。`;}
+    });
+    window.csvAuditForTests={parseCsv,analyze};
+  })();
+  </script>
+</body>
+</html>

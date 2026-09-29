@@ -1,0 +1,4 @@
+type,order_id,variant_id,shipping_id,quantity,配送方法,追跡番号
+order,TEST-001,,,,,
+product,TEST-001,VAR-A,,2,配送方法未定,TEST-TRACK-001
+product,TEST-001,VAR-B,SHIP-001,1,配送方法未定,TEST-TRACK-002
