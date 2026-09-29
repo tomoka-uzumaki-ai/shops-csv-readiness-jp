@@ -50,14 +50,15 @@
     const fileInput=document.getElementById('file');
     const encoding=document.getElementById('encoding');
     function parseCsv(text){
-      const rows=[];let row=[],cell='',quoted=false;
+      const rows=[];let row=[],cell='',quoted=false,closedQuote=false;
       text=text.replace(/^\uFEFF/,'');
       for(let i=0;i<text.length;i++){
         const c=text[i];
-        if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else quoted=false;}else cell+=c;continue;}
-        if(c==='"' && cell===''){quoted=true;continue;}
-        if(c===','){row.push(cell);cell='';continue;}
-        if(c==='\r'||c==='\n'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(value=>value!==''))rows.push(row);row=[];cell='';continue;}
+        if(quoted){if(c==='"'){if(text[i+1]==='"'){cell+='"';i++;}else{quoted=false;closedQuote=true;}}else cell+=c;continue;}
+        if(closedQuote && c!==',' && c!=='\r' && c!=='\n')throw new Error('引用符の後に余分な文字があります。CSV原本の形式を確認してください。');
+        if(c==='"'){if(cell!=='')throw new Error('値の途中に引用符があります。CSV原本の形式を確認してください。');quoted=true;continue;}
+        if(c===','){row.push(cell);cell='';closedQuote=false;continue;}
+        if(c==='\r'||c==='\n'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(cell);if(row.some(value=>value!==''))rows.push(row);row=[];cell='';closedQuote=false;continue;}
         cell+=c;
       }
       if(quoted)throw new Error('引用符が閉じていません。CSV原本の形式を確認してください。');
@@ -117,9 +118,13 @@
         if(missing.length)lines.push(`要確認：集計に必要な列が見当たりません：${missing.join('、')}`);
         if(has('販売利益')){
           const raw=data.map(row=>get(row,'販売利益').replace(/[¥￥円,\s]/g,''));
-          const invalid=raw.filter(value=>value===''||!/^[-+]?\d+(?:\.\d+)?$/.test(value)).length;
-          if(invalid)lines.push(`販売利益を合計しません：読めない金額が${invalid}行あります。空欄を0円とみなしません。`);
-          else lines.push(`販売利益列の合計 ${raw.reduce((sum,value)=>sum+Number(value),0).toLocaleString('ja-JP')}円（CSV内の列値の単純合計。受領済み利益や当方の収益ではありません）`);
+          const invalid=raw.filter(value=>value===''||!/^[-+]?\d+$/.test(value)||!Number.isSafeInteger(Number(value))).length;
+          if(invalid)lines.push(`販売利益を合計しません：空欄・整数円でない値・安全に扱えない大きな金額が${invalid}行あります。CSV原本を確認してください。`);
+          else {
+            const sum=raw.reduce((total,value)=>total+Number(value),0);
+            if(!Number.isSafeInteger(sum))lines.push('販売利益を合計しません：合計額が安全に扱える数値範囲を超えました。CSV原本を確認してください。');
+            else lines.push(`販売利益列の合計 ${sum.toLocaleString('ja-JP')}円（CSV内の列値の単純合計。受領済み利益や当方の収益ではありません）`);
+          }
         }
         if(data.length>orders.size)lines.push('重要：行数は注文件数ではありません。最初の1行だけ取り込む処理は明細を落とします。');
         lines.push('元の管理画面と、注文番号・明細番号ごとの集計を照合してください。');
