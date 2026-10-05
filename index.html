@@ -144,16 +144,26 @@
       }
       return lines.join('\n');
     }
-    fileInput.addEventListener('change',async()=>{
-      const file=fileInput.files[0];if(!file)return;
+    let readRevision=0;
+    async function readSelectedCsv(){
+      const current=++readRevision;
+      const file=fileInput.files[0];
+      const selectedEncoding=encoding.value;
+      if(!file){report.textContent='CSVを選ぶと、形式と確認事項がここに出ます。';return;}
       if(file.size>5*1024*1024){report.textContent='5MBを超えるファイルは扱いません。対象期間を分けて出力してください。';return;}
       report.textContent='この端末内で読み取り中…';
       try{
         const raw=await file.arrayBuffer();
-        const decoded=new TextDecoder(encoding.value,{fatal:true}).decode(raw);
+        if(current!==readRevision)return;
+        const decoded=new TextDecoder(selectedEncoding,{fatal:true}).decode(raw);
         report.textContent=analyze(parseCsv(decoded));
-      }catch(error){report.textContent=`読み取れませんでした：${error.message} 文字コードかCSV形式を確認してください。`;}
-    });
+      }catch(error){
+        if(current!==readRevision)return;
+        report.textContent=`読み取れませんでした：${error.message} 文字コードかCSV形式を確認してください。`;
+      }
+    }
+    fileInput.addEventListener('change',readSelectedCsv);
+    encoding.addEventListener('change',readSelectedCsv);
     window.csvAuditForTests={parseCsv,analyze};
   })();
   </script>
