@@ -16,14 +16,9 @@
 <body>
   <header class="top"><div class="wrap"><small>独立した移行確認ツール・試作版</small><h1>新CSVで、従来の集計が<br>壊れないか確かめる。</h1><p>メルカリShopsの複数個購入に伴い、一括発送通知と売上明細の行の意味が変わります。実際に出力したCSVをこの端末内だけで読み、移行前に確かめる点を表示します。</p></div></header>
   <main class="wrap main">
-    <nav class="panel" aria-labelledby="job-route-title">
-      <h2 id="job-route-title">いま確認したい作業を選ぶ</h2>
-      <ul class="check">
-        <li><a href="#audit-title">発送・売上CSVの新形式を確認する</a> — この下で、1ファイルを端末内で点検します。</li>
-        <li><a href="timesale-retry/">タイムセールのCREATE修正版を比較する</a> — 元エラーCSVと修正版で、成功行や編集不可欄の保全を確認します。</li>
-        <li><a href="order-api-audit/">自社の注文APIに旧参照が残っていないか調べる</a> — 独自連携の開発担当向け。実APIの互換性を保証するものではありません。</li>
-      </ul>
-      <p class="muted">いずれも無料です。EC一元管理サービスを利用していて自社コードを保守していない場合は、まず提供元の対応を確認してください。</p>
+    <nav class="panel" style="padding:12px 20px" aria-label="確認する作業">
+      <p style="margin:0"><strong>確認する作業：</strong><a href="#audit-title">発送・売上CSV</a> ／ <a href="timesale-retry/">タイムセール修正</a> ／ <a href="order-api-audit/">自社の注文API</a></p>
+      <p class="muted" style="margin:.3em 0 0">いずれも無料。APIは自社で保守する開発担当向けです。</p>
     </nav>
     <section class="panel" aria-labelledby="audit-title">
       <h2 id="audit-title">CSVを選ぶ</h2>
