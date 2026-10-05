@@ -1,0 +1,212 @@
+{
+  "version": "private-contract-v1",
+  "synthetic": true,
+  "not_api_responses": true,
+  "cases": [
+    {
+      "id": "same_product_quantity",
+      "kind": "quantity",
+      "input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 3,
+            "remaining": 0,
+            "sent": 1,
+            "canceled": 0
+          }
+        ]
+      },
+      "expected_issues": [
+        "quantity_conservation"
+      ],
+      "repaired_input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 3,
+            "remaining": 2,
+            "sent": 1,
+            "canceled": 0
+          }
+        ]
+      },
+      "interpretation": "1商品3個を1個と決めつけず、購入3＝残2＋発送1。独自正規化の排他的状態で比較しAPI数量欄の直接合算はしない。"
+    },
+    {
+      "id": "multiple_products_one_transaction",
+      "kind": "multi_product",
+      "input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 2,
+            "remaining": 2,
+            "sent": 0,
+            "canceled": 0
+          },
+          {
+            "variant_key": "synthetic-sku-b",
+            "purchased": 1,
+            "remaining": 1,
+            "sent": 0,
+            "canceled": 0
+          }
+        ],
+        "application_order_count": 3
+      },
+      "expected_issues": [
+        "purchase_units_miscounted_as_orders"
+      ],
+      "repaired_input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 2,
+            "remaining": 2,
+            "sent": 0,
+            "canceled": 0
+          },
+          {
+            "variant_key": "synthetic-sku-b",
+            "purchased": 1,
+            "remaining": 1,
+            "sent": 0,
+            "canceled": 0
+          }
+        ],
+        "application_order_count": 1
+      },
+      "interpretation": "複数商品フェーズの将来想定。購入単位3と注文1を区別。実本番の複数商品注文ではない。"
+    },
+    {
+      "id": "partial_cancel_permission_and_async",
+      "kind": "partial_cancel",
+      "input": {
+        "attempt_partial": true,
+        "isPartialCancelable": false,
+        "cancellation_status": "CANCELING",
+        "application_marks_canceled": true
+      },
+      "expected_issues": [
+        "partial_cancel_not_permitted",
+        "async_request_not_completed"
+      ],
+      "repaired_input": {
+        "attempt_partial": false,
+        "isPartialCancelable": false,
+        "cancellation_status": "CANCELING",
+        "application_marks_canceled": false
+      },
+      "interpretation": "公式の可否フィールドを尊重。falseなら部分操作をせず、受理中をキャンセル完了にしない。実操作は一切ない。"
+    },
+    {
+      "id": "split_shipping_completion",
+      "kind": "split_shipping",
+      "input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 3,
+            "remaining": 2,
+            "sent": 1,
+            "canceled": 0
+          }
+        ],
+        "shipments": [
+          {
+            "shipment_key": "synthetic-shipment-1",
+            "sent": 1
+          }
+        ],
+        "application_marks_all_complete": true
+      },
+      "expected_issues": [
+        "premature_order_completion"
+      ],
+      "repaired_input": {
+        "products": [
+          {
+            "variant_key": "synthetic-sku-a",
+            "purchased": 3,
+            "remaining": 2,
+            "sent": 1,
+            "canceled": 0
+          }
+        ],
+        "shipments": [
+          {
+            "shipment_key": "synthetic-shipment-1",
+            "sent": 1
+          }
+        ],
+        "application_marks_all_complete": false
+      },
+      "interpretation": "一配送の完了で注文全数量の発送完了を決めない。実APIの配送状態変換は未検証。"
+    },
+    {
+      "id": "legacy_messages_null",
+      "kind": "message",
+      "input": {
+        "legacy_messages": null,
+        "application_treats_no_history": true
+      },
+      "expected_issues": [
+        "null_does_not_prove_no_history"
+      ],
+      "repaired_input": {
+        "legacy_messages": null,
+        "application_treats_no_history": false
+      },
+      "interpretation": "旧messagesがnullになる予定を履歴消失と誤認しない。inquiries/inquiryMessagesで別取得する必要。取得そのものは未実行。"
+    },
+    {
+      "id": "webhook_replay_and_distinct_event",
+      "kind": "webhook",
+      "input": {
+        "events": [
+          {
+            "synthetic_event_key": "evt-A",
+            "transaction": "synthetic-t1",
+            "shipment": "s1"
+          },
+          {
+            "synthetic_event_key": "evt-A",
+            "transaction": "synthetic-t1",
+            "shipment": "s1"
+          },
+          {
+            "synthetic_event_key": "evt-B",
+            "transaction": "synthetic-t1",
+            "shipment": "s2"
+          }
+        ],
+        "processed_effects": 1
+      },
+      "expected_issues": [
+        "replay_or_distinct_event_lost"
+      ],
+      "repaired_input": {
+        "events": [
+          {
+            "synthetic_event_key": "evt-A",
+            "transaction": "synthetic-t1",
+            "shipment": "s1"
+          },
+          {
+            "synthetic_event_key": "evt-A",
+            "transaction": "synthetic-t1",
+            "shipment": "s1"
+          },
+          {
+            "synthetic_event_key": "evt-B",
+            "transaction": "synthetic-t1",
+            "shipment": "s2"
+          }
+        ],
+        "processed_effects": 2
+      },
+      "interpretation": "同一注文IDだけの重複排除は別配送イベントを落とす。event keyは合成のアプリ契約でありMercariの実ヘッダ/IDを表さない。公式payload/永続化/再送実験が別途必要。"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+# 架空の旧実装。実顧客・ショップのデータは含まない。
+query LegacyOrders($from: DateTime) {
+  orders(
+    updatedDateGte: $from
+  ) {
+    edges { node { id } }
+  }
+}
+
+mutation OldShipment($id: ID!) {
+  completeOrder(input: {orderId: $id}) { order { id } }
+}

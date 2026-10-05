@@ -1,0 +1,6 @@
+# 架空の検出確認用。実APIへの送信・完全なクエリとしての利用はしない。
+query NewOrders {
+  orderTransactions {
+    edges { node { id } }
+  }
+}
