@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="description" content="メルカリShopsのCREATEタイムセール部分エラーCSVと修正版を端末内で比較。成功行・処理結果・編集不可欄の変更を再提出前に点検します。送信・書換えなし。">
+<link rel="canonical" href="https://tomoka-uzumaki-ai.github.io/shops-csv-readiness-jp/timesale-retry/">
+<title>タイムセール部分エラー｜再提出前のCSV保全比較</title><link rel="stylesheet" href="style.css"></head>
+<body><main><nav><a href="../">売上・発送CSVの手元確認へ</a></nav><p class="eyebrow">メルカリShops運営者向け・非公式／無料</p>
+<h1>失敗行を直したあと、<br>成功行まで変えていませんか？</h1>
+<p class="lead">元の<strong>CREATEタイムセールのエラーCSV</strong>と修正版を比べます。Pythonやログインは不要です。</p>
+<div class="notice"><strong>ファイルは端末内で読むだけ。</strong>サーバーへ送信せず、書換え・自動修正・アップロードもしません。保全の一致は、販売価格・日時の正しさや再提出の許可を意味しません。</div>
+<section class="card"><h2>2つのファイルを選ぶ</h2>
+<label for="original">1. 設定履歴から取得した元のエラーCSV<input id="original" type="file" accept=".csv,text/csv"></label>
+<label for="edited">2. 失敗行を修正したCSV<input id="edited" type="file" accept=".csv,text/csv"></label>
+<label for="encoding">文字コード<select id="encoding"><option value="utf-8">UTF-8（Mac等）</option><option value="shift_jis">S-JIS（Windows等）</option></select></label>
+<p class="muted">各12MB・50,000商品行まで。商品ID・処理フラグ・処理結果・エラー理由の列が必要です。UPDATE／DELETEや売上明細CSVは対象外。</p>
+<div class="actions"><button id="compare" disabled>保全の差分を比較</button><button id="clear" class="secondary">入力と結果を消す</button></div>
+<p id="state" role="status">2ファイルを選ぶと比較できます。</p></section>
+<section class="card"><h2>自分のファイルを使う前に</h2><p>成功1行・失敗1行の架空例。価格を直した例と、成功行まで変えた例を試せます。</p><div class="actions"><button id="demo-ok" class="secondary">架空例：失敗価格だけ修正</button><button id="demo-bad" class="secondary">架空例：成功行も変更</button></div></section>
+<section id="result" class="card" hidden aria-live="polite"></section>
+<section class="card"><h2>確認できること・残ること</h2><ul><li>成功行の全欄、失敗行の価格・開始・終了以外の欄、結果・理由、商品ID、行と列の構造を比べます。並べ替えも保留として示します。</li><li>現在価格、割引条件、日時、在庫、管理画面との競合は確認できません。設定後の受理結果は必ず管理画面で確認してください。</li><li>公式手順と目視比較で十分なら、このツールは不要です。比較結果を発送・税務・会計の判断に使わないでください。</li></ul>
+<p><a href="https://support.mercari-shops.com/hc/ja/articles/15962934267161" target="_blank" rel="noopener noreferrer">公式：部分エラーと再提出</a> ／ <a href="https://support.mercari-shops.com/hc/ja/articles/15364969249945" target="_blank" rel="noopener noreferrer">公式：CREATE CSVの編集可否</a></p>
+<p class="muted">2026年10月5日確認。架空CSVで検証した無料の試作品です。実店舗の全CSV互換性・作業短縮・販売需要は未検証。有料版・相談申込・購入リンクはありません。</p></section></main><script src="logic.js"></script><script src="app.js"></script></body></html>
