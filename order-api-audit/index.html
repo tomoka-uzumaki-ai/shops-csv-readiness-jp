@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>メルカリShops 注文API移行｜旧参照候補と6つの受入検査</title>
+<meta name="description" content="自社で注文連携を保守する開発担当向け。旧API名の候補をローカルで抽出し、数量・取消・分割発送・再送などの合成受入例を確認する無料パック。">
+<link rel="canonical" href="https://tomoka-uzumaki-ai.github.io/shops-csv-readiness-jp/order-api-audit/">
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#183742;background:#f3f7f6;line-height:1.75}*{box-sizing:border-box}body{margin:0}main{width:min(100% - 32px,780px);margin:32px auto 60px}h1{font-size:clamp(27px,5vw,40px);line-height:1.35}h2{font-size:22px}a{color:#08716b;text-underline-offset:3px}a:focus-visible{outline:3px solid #dc944a;outline-offset:4px}.tag{font-size:14px;font-weight:700;color:#08716b}.card{background:white;border:1px solid #d4e2de;border-radius:12px;padding:clamp(18px,4vw,28px);margin:20px 0}.button{display:inline-block;background:#08716b;color:white;font-weight:700;padding:13px 20px;border-radius:8px;text-decoration:none}.note{background:#fff4e5;border-left:4px solid #d0943b;padding:12px 16px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef4f3;padding:15px;border-radius:7px;font-size:14px}code{overflow-wrap:anywhere}li{margin:8px 0}small{color:#526a73}footer{border-top:1px solid #d4e2de;padding-top:16px;font-size:13px}
+</style>
+</head><body><main>
+<p><a href="../">CSV確認ツールへ戻る</a></p>
+<p class="tag">自社の注文連携を保守する開発担当向け · 無料 · 非公式</p>
+<h1>旧APIの参照候補を見つけ、<br>担当する受入検査を決める。</h1>
+<p>公式資料を読んだ後、自分のコードのどこを確かめるか。その最初の担当箇所と、見落としやすい6つの合成例を、小さなローカルパックで確認できます。</p>
+<p class="note">EC一元管理サービスを利用する店舗は、まず提供元の対応状況を確認してください。このパックは自社開発向けで、店舗の設定をONにしたり本番連携を改修したりする道具ではありません。</p>
+<section class="card"><h2>架空例から始める</h2>
+<p><a class="button" href="https://github.com/tomoka-uzumaki-ai/shops-csv-readiness-jp/releases/download/x4-source-audit-v0.1.0/mercari-order-api-candidates-v0.1.0.zip">無料ZIPを取得（約11KB）</a></p>
+<p>Python 3.9以上。標準ライブラリのみ。ZIPを展開し、そのフォルダで実行します。</p>
+<pre><code>python3 scan_order_api.py examples/legacy.graphql --json
+python3 test_scanner.py
+python3 verify_fixtures.py</code></pre>
+<p>次に、自分が読む権限を持つソースの狭い範囲を指定します。APIトークンや顧客CSVは不要。スキャナーはソースを変更・送信しません。テストはパック内に結果JSONを作ります。</p>
+<p><a href="https://github.com/tomoka-uzumaki-ai/shops-csv-readiness-jp/blob/x4-source-audit-v0.1.0/order-api-audit/README.md">全手順・終了コード・対象外の範囲を見る</a> / <a href="https://github.com/tomoka-uzumaki-ai/shops-csv-readiness-jp/releases/tag/x4-source-audit-v0.1.0">版と取得ファイルを確認</a></p>
+<small>SHA-256: <code>be6e692d8eb5ae8329ccc8291f2d7020b78c694140dffa41926de88ff9677b1a</code>。パスやファイル名も機密になり得ます。結果の共有前に確認してください。</small>
+</section>
+<section class="card"><h2>検出結果を次の仕事へつなぐ</h2><ol>
+<li>候補のファイル・行番号を読み、コメントや未使用コードを除きます。単なる文字候補で、GraphQL解析器ではありません。</li>
+<li>数量、複数商品、部分取消、分割発送、旧messagesのnull、Webhook再送から、自分の処理に関係する合成例を選びます。</li>
+<li>現行仕様と権限あるSandboxで、実payload・ページング・保存・状態遷移を担当者が検収してから切替を決めます。</li>
+</ol><p class="note">終了コード0や全テスト合格は、実API互換性・検査範囲の完全性・移行完了を証明しません。UTF-8で読めないファイル、サイズ上限、対象なしは不完全として区別します。合成例は実APIレスポンスではありません。</p></section>
+<section class="card"><h2>原典に戻る</h2><ul>
+<li><a href="https://api.mercari-shops.com/docs/index.html">現行API仕様</a></li>
+<li><a href="https://api.mercari-shops.com/docs/mercari-shops-api-cart-G8Ko5urichtHGSZy6ayAx3.pdf">カート移行資料</a>：旧注文API廃止は2026年12月末〜2027年初頭目処。</li>
+<li><a href="https://api.mercari-shops.com/docs/mercari-shops-api-inquiry-2026073001.html">問い合わせ移行資料</a>：旧メッセージ系は2027年1月中旬予定。旧messagesのnullを過去履歴なしと解釈しない。</li>
+</ul><p><small>資料確認日：2026年10月5日。正確な廃止日、ショップの有効化、連携先の対応は現在の原典と自社環境で確認してください。</small></p></section>
+<footer>公式資料と文字検索で作業が終わる方は、その方法で完了できます。この無料パックに購入・改修依頼への誘導はありません。公開パックの取得検収は実施済みですが、実導入・需要・売上は未確認です。</footer>
+</main></body></html>
