@@ -1,0 +1,25 @@
+'use strict';
+const S=ShippingRules, en=document.documentElement.lang==='en';
+const $=id=>document.getElementById(id);
+const t=(ja,english)=>en?english:ja;
+let model=null,report=null,cartReport=null,expected=null,version=0;
+function invalidate(){report=cartReport=expected=null;['single-output','batch-output'].forEach(id=>$(id).textContent=t('未確認。入力を確定して再実行してください。','Unconfirmed. Validate input and run again.'));['save-cart','save-json','save-csv','save-baseline'].forEach(id=>$(id).disabled=true);}
+function editModel(){version++;model=null;invalidate();$('model-status').textContent=t('入力変更：モデルは未確定です。','Input changed: model is not validated.');}
+function save(data,name,type='application/json'){const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+function error(id,e){$(id).textContent=t('未確認：','Unconfirmed: ')+e.message;}
+$('model').addEventListener('input',editModel);
+$('expected').addEventListener('input',()=>{version++;invalidate();});
+['country','subtotal','weight'].forEach(id=>$(id).addEventListener('input',()=>{cartReport=null;$('single-output').textContent=t('カート変更：再実行してください。','Cart changed: run again.');$('save-cart').disabled=true;}));
+$('model-file').addEventListener('change',async()=>{editModel();const ticket=version;try{const file=$('model-file').files[0];if(!file)return;if(file.size>S.MAX)throw Error('Maximum 1 MiB');const text=await file.text(),valid=S.validateModel(S.parse(text));if(ticket!==version)return;$('model').value=JSON.stringify(valid,null,2);model=valid;$('model-status').textContent=t('モデルを検証して読み込みました。','Model validated and imported.');}catch(e){if(ticket===version)error('model-status',e);}finally{$('model-file').value='';}});
+$('expected-file').addEventListener('change',async()=>{version++;invalidate();const ticket=version;try{const file=$('expected-file').files[0];if(!file)return;if(file.size>S.MAX)throw Error('Maximum 1 MiB');const text=await file.text(),valid=S.validateExpected(S.parse(text));if(ticket!==version)return;$('expected').value=JSON.stringify(valid,null,2);$('batch-output').textContent=t('期待ファイルを検証して読み込みました。再実行してください。','Expected file validated and imported. Run the comparison.');}catch(e){if(ticket===version)error('batch-output',e);}finally{$('expected-file').value='';}});
+$('validate').addEventListener('click',()=>{model=null;invalidate();try{model=S.validateModel(S.parse($('model').value));$('model-status').textContent=t('手動モデルを検証しました。ライブ店舗との一致は未確認です。','Entered model validated. Live store agreement is unconfirmed.');}catch(e){error('model-status',e);}});
+function requireModel(){if(!model)throw Error(t('先にモデルを検証してください。','Validate the model first.'));return model;}
+function minor(text,currency){const decimals=currency==='USD'?2:0,pattern=decimals?/^\d{1,10}(\.\d{1,2})?$/:/^\d{1,10}$/;if(!pattern.test(text))throw Error(t('金額はJPY整数、USD小数2桁以内です。','Use whole JPY, or USD with up to 2 decimal places.'));const [a,b='']=text.split('.');return Number(a)*(decimals?100:1)+Number((b+'00').slice(0,decimals)||0);}
+$('check').addEventListener('click',()=>{cartReport=null;$('save-cart').disabled=true;try{const m=requireModel(),g=$('weight').value;if(!/^\d{1,8}$/.test(g))throw Error('Use whole grams');cartReport=S.check(m,{country:$('country').value.trim().toUpperCase(),subtotal_minor:minor($('subtotal').value,m.currency),weight_g:Number(g)});$('single-output').textContent=JSON.stringify(cartReport,null,2);$('save-cart').disabled=false;}catch(e){error('single-output',e);}});
+$('batch').addEventListener('click',()=>{report=null;expected=null;['save-json','save-csv','save-baseline'].forEach(id=>$(id).disabled=true);try{const m=requireModel(),text=$('expected').value.trim();expected=text?S.validateExpected(S.parse(text)):null;report=S.regression(m,expected);$('batch-output').textContent=JSON.stringify(report,null,2);['save-json','save-csv','save-baseline'].forEach(id=>$(id).disabled=false);}catch(e){error('batch-output',e);}});
+$('save-cart').addEventListener('click',()=>{if(cartReport)save(JSON.stringify(cartReport,null,2),'single-cart.json');});
+$('save-json').addEventListener('click',()=>{if(report)save(JSON.stringify(report,null,2),'shipping-boundary-report.json');});
+$('save-csv').addEventListener('click',()=>{if(report)save(S.csv(report),'shipping-boundary-report.csv','text/csv;charset=utf-8');});
+$('save-baseline').addEventListener('click',()=>{if(model&&report)save(JSON.stringify(S.baseline(model),null,2),'shipping-generated-baseline.json');});
+$('sample').addEventListener('click',async()=>{editModel();const ticket=version;try{const res=await fetch('sample.json');if(!res.ok)throw Error('Sample unavailable');const valid=S.validateModel(S.parse(await res.text()));if(ticket!==version)return;$('model').value=JSON.stringify(valid,null,2);model=valid;$('expected').value='';$('model-status').textContent=t('架空モデルを読み込みました。本人の設定へ置き換えてください。','Fictional sample loaded. Replace it with your own entered settings.');}catch(e){if(ticket===version)error('model-status',e);}});
+invalidate();

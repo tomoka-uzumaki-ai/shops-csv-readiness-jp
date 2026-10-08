@@ -1,0 +1,10 @@
+{
+  "schema": "shipping-local-v1",
+  "currency": "JPY",
+  "boundary_semantics": "inclusive",
+  "zones": [{"id": "domestic", "countries": ["JP"], "rates": [
+    {"id":"standard","name":"通常 / Standard","price_minor":600,"subtotal_minor":{"min":0,"max":4999},"weight_g":{"min":0,"max":2000}},
+    {"id":"free","name":"送料無料 / Free","price_minor":0,"subtotal_minor":{"min":5000,"max":null},"weight_g":{"min":0,"max":2000}},
+    {"id":"express","name":"速達 / Express","price_minor":1000,"subtotal_minor":{"min":0,"max":null},"weight_g":{"min":0,"max":2000}}
+  ]}]
+}

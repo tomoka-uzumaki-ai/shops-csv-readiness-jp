@@ -1,0 +1,51 @@
+{
+  "schema": "normalized-order-events-v1",
+  "synthetic": true,
+  "sequence": "declared_arrival_order",
+  "events": [
+    {
+      "event_key": "create-partial",
+      "kind": "order_created",
+      "order_alias": "order-demo",
+      "items": [
+        {
+          "variant_alias": "sku-a",
+          "quantity": 3
+        }
+      ]
+    },
+    {
+      "event_key": "request-one",
+      "kind": "cancel_requested",
+      "order_alias": "order-demo",
+      "items": [
+        {
+          "variant_alias": "sku-a",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "event_key": "complete-one",
+      "kind": "canceled_completed",
+      "order_alias": "order-demo",
+      "items": [
+        {
+          "variant_alias": "sku-a",
+          "quantity": 1
+        }
+      ]
+    },
+    {
+      "event_key": "ship-two",
+      "kind": "shipment",
+      "order_alias": "order-demo",
+      "items": [
+        {
+          "variant_alias": "sku-a",
+          "quantity": 2
+        }
+      ]
+    }
+  ]
+}

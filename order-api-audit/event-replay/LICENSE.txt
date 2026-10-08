@@ -1,0 +1,5 @@
+Permission is granted, to the extent of the publisher's rights, to use, modify, redistribute and commercially use the newly included code, fictional replay/example data and instructions. Retain this notice with redistributed source copies.
+
+The publisher does not grant exclusive rights to AI-generated material or rights to third-party content. Your input data and its permissions remain your responsibility. Linked original material retains its own notices.
+
+THE MATERIAL IS PROVIDED AS IS, WITHOUT WARRANTY OF FITNESS FOR A PARTICULAR PURPOSE OR ACCURACY OF USER-SUPPLIED DATA. It does not execute orders or shipping, perform payments, or certify real API or checkout compatibility.

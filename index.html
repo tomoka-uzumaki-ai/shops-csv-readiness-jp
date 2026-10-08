@@ -17,7 +17,7 @@
   <header class="top"><div class="wrap"><small>独立した移行確認ツール・試作版</small><h1>新CSVで、従来の集計が<br>壊れないか確かめる。</h1><p>メルカリShopsの複数個購入に伴い、一括発送通知と売上明細の行の意味が変わります。実際に出力したCSVをこの端末内だけで読み、移行前に確かめる点を表示します。</p></div></header>
   <main class="wrap main">
     <nav class="panel" style="padding:12px 20px" aria-label="確認する作業">
-      <p style="margin:0"><strong>確認する作業：</strong><a href="#audit-title">発送・売上CSV</a> ／ <a href="timesale-retry/">タイムセール修正</a> ／ <a href="order-api-audit/">自社の注文API</a></p>
+      <p style="margin:0"><strong>確認する作業：</strong><a href="#audit-title">発送・売上CSV</a> ／ <a href="timesale-retry/">タイムセール修正</a> ／ <a href="shipping-rules/">送料条件</a> ／ <a href="order-api-audit/">自社の注文API</a></p>
       <p class="muted" style="margin:.3em 0 0">いずれも無料。APIは自社で保守する開発担当向けです。</p>
     </nav>
     <section class="panel" aria-labelledby="audit-title">
@@ -48,7 +48,7 @@
     </section>
     <section class="panel sources"><h2>根拠</h2><p><a href="https://jp-news.mercari.com/mercari-shops/info/53548" target="_blank" rel="noopener">メルカリShops公式：同一商品の複数個購入（9月24日追記）</a>。2026年9月30日に再確認。記事は9月28日リリースを「予定」と記載しており、この試作は実際の提供開始を保証しません。部分キャンセルの条件も同記事の追記に従って再確認してください。</p></section>
     <section class="panel"><h2>タイムセールの部分エラーを直す場合</h2><p>売上・発送CSVとは別の仕事です。CREATEの元エラーCSVと修正版で、成功行・結果列・編集不可欄を保全したかを端末内で比較できます。</p><p><a href="timesale-retry/">再提出前のCSV保全比較を開く</a>（無料・送信／書換えなし。価格や日時、再提出の許可は判定しません）</p></section>
-    <section class="panel"><h2>自社で注文APIを保守している方へ</h2><p>CSVとは別に、旧API名の候補と数量・取消・分割発送などの合成受入例を確認する無料パックがあります。EC一元管理サービスの利用店舗は、まず提供元の対応を確認してください。</p><p><a href="order-api-audit/">注文APIの旧参照候補パックと手順を見る</a>（ローカル実行・実API互換性の保証なし）</p></section>
+    <section class="panel"><h2>Shopifyの送料設定を管理する方へ</h2><p>ShopsのCSVとは別の作業です。自分で記入した一つの配送グループから、1カートの送料候補と、金額・重量の境目を確かめます。変更前の結果を保存して、変更後との差も比較できます。</p><p><a href="shipping-rules/">送料候補・境界比較を開く</a>（無料・手動モデル。ライブ設定や実チェックアウトは確認しません）</p></section><section class="panel"><h2>自社で注文APIを保守している方へ</h2><p>CSVとは別に、旧API名の候補と数量・取消・分割発送などの合成受入例を確認する無料パックがあります。EC一元管理サービスの利用店舗は、まず提供元の対応を確認してください。</p><p><a href="order-api-audit/">注文APIの旧参照候補パックと手順を見る</a> ／ <a href="order-api-audit/event-replay/">部分発送・取消・再送を到着順に検査</a>（ローカル実行・実API互換性の保証なし）</p></section>
     <section class="panel"><h2>確認が終わらなかった場合</h2><p><a href="https://github.com/tomoka-uzumaki-ai/shops-csv-readiness-jp/issues/new?template=buyer-workflow.md">無料ツールで止まった作業を報告する</a>（任意・GitHubアカウントが必要）</p><p class="muted">報告内容はGitHubで公開されます。実際の注文CSV・実コード・顧客情報・店舗ID・トークン・実ファイルパスは送らず、公表できる架空の手順と期待/実際の結果だけを書いてください。返信・修正時期・個別対応は約束していません。無料で作業が済んだ方は、そのまま完了できます。</p></section>
   </main>
   <footer class="footer"><div class="wrap">独立した移行確認の試作です。メルカリShops公式サービスではありません。CSVの内容は保存・送信しません。</div></footer>

@@ -1,0 +1,26 @@
+{
+  "created_on": "2026-10-09",
+  "shipping_primary": {
+    "url": "https://help.shopify.com/en/manual/fulfillment/setup/shipping-rates/setting-up-shipping-rates",
+    "verified_on": "2026-10-09",
+    "use": "Zones, amount/weight conditions, coverage gaps, multiple options; entered inclusive semantics are local only"
+  },
+  "original_final_state_fixtures": {
+    "path": "order-api-audit/fixtures.json",
+    "url": "https://github.com/tomoka-uzumaki-ai/shops-csv-readiness-jp/blob/x4-source-audit-v0.1.0/order-api-audit/fixtures.json",
+    "sha256": "a936bb0bc6720db987e127a7eb6d1922ddb069116e3233dc255cf6fc5a378f8a",
+    "baseline_verified_on": "2026-10-05",
+    "use": "Six original synthetic examples; quantity/multiple products/partial cancel/split shipping/resends inform new timeline. Null messages remain original checker responsibility."
+  },
+  "mercari_primary": {
+    "url": "https://api.mercari-shops.com/docs/index.html",
+    "status": "Linked as current authority; no new live API certification"
+  },
+  "limitations": [
+    "No API calls or credentials",
+    "Original scanner and six-case checker copied unchanged",
+    "New timeline is a synthetic normalized state model, not actual fields/IDs",
+    "One entered shipping currency/group only; real checkout and country eligibility unconfirmed"
+  ],
+  "license_status": "Original v0.1.0 ZIP contained no LICENSE file. Existing instructions/notices preserved unchanged. Added LICENSE applies only to newly included material to extent of publisher rights; linked official material is not relicensed."
+}
